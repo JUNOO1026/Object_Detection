@@ -12,7 +12,7 @@ ANCHOR_BOXES : [
   [9.7198, 10.3616]
 ]
 
-YoloV2 : [
+YoloV2_first : [
   # kernel_size, out_channels, stride, padding
   [3, 32, 1, 1],
   'M',
@@ -31,10 +31,20 @@ YoloV2 : [
   [3, 512, 1, 1],
   [1, 256, 1, 0],
   [3, 512, 1, 1],
+]
+
+YoloV2_second : [
   'M',
   [3, 1024, 1, 1],
   [1, 512, 1, 0],
   [3, 1024, 1, 1],
   [1, 512, 1, 0],
   [3, 1024, 1, 1],
+]
+
+FCN_layers_channels : 3072
+
+FCN_layer : [
+ [3, 1024, 1, 1],
+ [1, 1024, 1, 0],
 ]
