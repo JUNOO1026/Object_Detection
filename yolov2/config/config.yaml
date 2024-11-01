@@ -1,3 +1,7 @@
+split_size : 13
+num_of_Anchor_Box : 5
+num_of_class : 4
+
 HEIGHT : 416
 WIDTH : 416
 SCALE : 32
