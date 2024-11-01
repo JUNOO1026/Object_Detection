@@ -33,14 +33,16 @@ class CNNBlock(nn.Module):
 
 
 class YoloV2(nn.Module):
-    def __init__(self, in_channels=3, **kwargs):
+    def __init__(self, in_channels=3, num_of_anchor=5, num_of_classes=3):
         super().__init__()
 
         self.model_first, self.model_second, self.fcn_layers_channels = load_model(path)
+        self.num_of_anchor = num_of_anchor
+        self.num_of_classes = num_of_classes
         self.in_channels = in_channels
         self.conv1 = self._create_block(self.model_first, self.in_channels)
         self.conv2 = self._create_block(self.model_second, 512)
-        self.fcs = self._create_fcs(self.fcn_layers_channels)
+        self.fcs = self._create_fcs(self.fcn_layers_channels, self.num_of_anchor, self.num_of_classes)
 
 
     def forward(self, x):
@@ -60,7 +62,12 @@ class YoloV2(nn.Module):
         print(x.shape)
         x = self.fcs(x)
         print(x.shape)
-        return
+        x = x.permute(0, 2, 3, 1).contiguous()
+        print(x.shape)
+        # x = x.view(x[0], x[1], x[2], self.num_of_anchor, self.num_of_classes + 5)
+        x = x.view(x.size(0), x.size(1), x.size(2), self.num_of_anchor, self.num_of_classes + 5)
+        print(x.shape)
+        return x
 
     def _create_block(self, model, in_channels):
         layers = []
@@ -75,19 +82,13 @@ class YoloV2(nn.Module):
         return nn.Sequential(*layers)
 
 
-    def _create_fcs(self, in_channels, num_of_anchor=5, num_of_classes=3):
+    def _create_fcs(self, in_channels, num_of_anchor, num_of_classes):
         layers = []
         out_channels = num_of_anchor * (num_of_classes + 5)
+        layers = [nn.Conv2d(in_channels, out_channels, kernel_size=1, stride=1, padding=0)]
+        final_layers = nn.Sequential(*layers)
 
-        layers = nn.Conv2d(in_channels, out_channels, kernel_size=1, stride=1, padding=0)
-
-        final_layers = nn.Sequential(layers)
-        final_out = final_layers.permute(0, 2, 3, 1).contiguous()
-
-        return final_out.view(final_out(0), final_out(1), final_out(2), num_of_anchor, num_of_classes + 5)
-
-
-
+        return final_layers
 
 x = torch.randn(4, 3, 416, 416)
 model = YoloV2()
