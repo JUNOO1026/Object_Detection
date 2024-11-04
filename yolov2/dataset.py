@@ -6,6 +6,7 @@ from PIL import Image
 from torchvision.transforms import v2
 from torchvision.io import read_image
 from torchvision import tv_tensors
+from utils import match_anchor_box
 
 path = './config/config.yaml'
 
@@ -13,9 +14,9 @@ def load_config(path):
     with open(path, 'r') as f:
         config = yaml.safe_load(f)
 
-    split_size, n_anchor, n_class = config['split_size'], config['num_of_anchor_box'], config['num_of_class']
+    split_size, n_anchor, n_class, anchor_boxes  = config['split_size'], config['num_of_anchor_box'], config['num_of_class'], config['ANCHOR_BOXES']
 
-    return split_size, n_anchor, n_class
+    return split_size, n_anchor, n_class, anchor_boxes
 
 class AfricaDataset(torch.utils.data.Dataset):
     def __init__(self, path, transform=None):
@@ -23,7 +24,7 @@ class AfricaDataset(torch.utils.data.Dataset):
         self.image_path = []
         self.transform = transform
 
-        self.S, self.A, self.C = load_config(path)
+        self.S, self.A, self.C, self.ANCHOR_BOXES = load_config(path)
 
         class_names = os.listdir(self.path) # directory set (buffalo, zebra, etc)
         for dir in class_names:
@@ -41,6 +42,9 @@ class AfricaDataset(torch.utils.data.Dataset):
         img, labels, bboxes = sample['image'], sample['labels'], sample['bboxes']
         _, height, width = img.size()
 
+
+        # 여기서 넘어가는 bboxes의 값들은 이미 0~1사이의 값으로 이루어져 있음.
+        # x_center, y_center, b_width, b_height
         target = self._make_target(bboxes, labels, width, height)
 
         return img, target
@@ -85,17 +89,27 @@ class AfricaDataset(torch.utils.data.Dataset):
         target = torch.zeros(self.S, self.S, self.A, 1 + 4 + self.C) # (conf, x,y,w,h, cls1, cls2, cls3, cls4)
 
         for bbox, label in zip(bboxes, labels):
-            # 픽셀 기준으로 박스의 중심좌표를 구하기 위함임.
+            # 픽셀 기준으로 박스의 중심상대좌표를 구하기 위함임.
             cx, cy = bbox[0] / 32, bbox[1] / 32 # grid * 32 == 416
 
-            pos = (int(cx), int(cy))
+            pos = (int(cx * 13) , int(cy * 13))
             pos = min(pos[0], 12), min(pos[1], 12)
 
+            # 해당 그리드 셀 내에서 얼마나 떨어져 있는지 알 수 있음.
             bx, by = cx - int(cx), cy - int(cy)
             box_width, box_height = bbox[2] / 32, bbox[3] / 32
 
             assigned_anchor_box = match_anchor_box(box_width, box_height, to_exclude)
-            anchor_box =
+            anchor_box = self.ANCHOR_BOXES[assigned_anchor_box]
+
+            bw_by_pw, bh_by_ph = box_width / anchor_box[0], box_height / anchor_box[1]
+
+            target[pos[0], pos[1], assigned_anchor_box, 0:5] = torch.tensor([1, bx, by, bw_by_pw, bh_by_ph])
+            target[pos[0], pos[1], assigned_anchor_box, 5 + int(label)] = 1
+
+            to_exclude.append(assigned_anchor_box)
+
+        return target
 
 
 path = './file.txt'
