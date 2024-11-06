@@ -46,6 +46,9 @@ class YOLODataset(Dataset):
         targets = [torch.zeros((self.num_anchors // 3, S, S, 6)) for S in self.S]
 
         for box in bboxes:
+            # BroadCasting
+            # torch.tensor(box[2:4]) shape is (1, 2)
+            # self.anchors shape is (9, 2)
             iou_anchors = iou(torch.tensor(box[2:4]), self.anchors)
             anchor_indices = iou_anchors.argsort(descending=True, dim=0)
             x, y, width, height, class_label = box
@@ -82,7 +85,7 @@ def test():
     [(0.28, 0.22), (0.38, 0.48), (0.9, 0.78)],
     [(0.07, 0.15), (0.15, 0.11), (0.14, 0.29)],
     [(0.02, 0.03), (0.04, 0.07), (0.08, 0.06)],
-]
+] # shape : 9 * 2
 
     transform = None
 

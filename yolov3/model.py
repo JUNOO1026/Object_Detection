@@ -60,6 +60,7 @@ class ResidualBlock(nn.Module):
         self.num_repeats = num_repeats
 
     def forward(self, x):
+        print("Residual_block")
         for layer in self.layers:
             if self.use_residual:
                 x = x + layer(x)
@@ -105,16 +106,17 @@ class YOLOv3(nn.Module):
                 continue
 
             x = layer(x)
-            print(x.shape)
 
             if isinstance(layer, ResidualBlock) and layer.num_repeats == 8:
                 route_connections.append(x)
 
-
             elif isinstance(layer, nn.Upsample):
                 x = torch.cat([x, route_connections[-1]], dim=1)
-                route_connections.pop()
 
+                route_connections.pop()
+        print('13*13:', torch.tensor(outputs[0]).shape)
+        print('26*26:', torch.tensor(outputs[1]).shape)
+        print('52*52:', torch.tensor(outputs[2]).shape)
         return outputs
 
     def _create_conv_layers(self):
@@ -151,6 +153,7 @@ class YOLOv3(nn.Module):
                 elif module == "U":
                     layers.append(nn.Upsample(scale_factor=2),)
                     in_channels = in_channels * 3
+                    print("Upsample in_channels : ", in_channels)
 
         return layers
 
