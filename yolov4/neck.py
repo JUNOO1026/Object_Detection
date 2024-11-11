@@ -30,6 +30,6 @@ class PANet(nn.Module):
         h_f = self.up_conv1(self.conv1(h_f))
         return torch.cat([h_f, l_f], dim=1)
 
-
-
-
+a = [1, 2, 3]
+for idx, i in enumerate(a):
+    print(idx, i)
