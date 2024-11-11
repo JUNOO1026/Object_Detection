@@ -30,14 +30,14 @@ class CNNBlock(nn.Module):
         return self.act(self.bn(self.conv(x)))
     
 
-class CSPBlock(nn.Module):
-    def __init__(self, in_channels, )
-        super().__init__()
-        self.conv1 = CNNBlock(in_channels, in_channels * 2, kernel_size=1, stride=1)
-        self.
+# class CSPBlock(nn.Module):
+#     def __init__(self, in_channels, )
+#         super().__init__()
+#         self.conv1 = CNNBlock(in_channels, in_channels * 2, kernel_size=1, stride=1)
+#         self.
 
-class CatConv(nn.Module):
-    def __init__(self, layer1, layer2):
+# class CatConv(nn.Module):
+#     def __init__(self, layer1, layer2):
         
     
 
