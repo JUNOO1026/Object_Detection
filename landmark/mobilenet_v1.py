@@ -82,6 +82,7 @@ class MobileNetV1(nn.Module):
         x = self.l_conv(x)
         x = self.pool(x)
         print("x.shape : ", x.shape)
+        print(x.size(0))
         x = x.view(x.size(0), -1)
         print("x.shape : ", x.shape)
         x = self.fc(x)
