@@ -20,9 +20,9 @@ class WLFWDataset(Dataset):
     def __getitem__(self, idx):
         self.line = self.lines[idx].strip().split()
         self.landmark = np.asarray(self.line[:196], dtype=float)
-        self.attribute = np.asarray(self.line[196:202], dtype=int)
-        self.euler_angle = np.asarray(self.line[202:205], dtype=float)
-        self.image = cv2.imread(self.dataset_path + self.line[205:])
+        self.attribute = np.asarray(self.line[200:206], dtype=int)
+        self.euler_angle = np.asarray(self.line[206:209], dtype=float)
+        self.image = cv2.imread(self.dataset_path + self.line[210:])
 
         if self.transform:
             self.img = self.transform(self.image)
