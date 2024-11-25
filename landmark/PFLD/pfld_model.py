@@ -82,17 +82,23 @@ class InvertedResidualBlock(nn.Module):
     def __init__(self, in_channels, out_channels, stride, use_residual):
         super().__init__()
 
+        # print('Inverted Expansion:', InvertedResidualBlock.expansion)
         self.layers = nn.Sequential(
             CNNBlock(in_channels, in_channels, kernel_size=1, stride=1, padding=0),
             DepthwiseBlock(in_channels, in_channels * InvertedResidualBlock.expansion, stride=stride),
             CNNBlockNonact(in_channels * InvertedResidualBlock.expansion, out_channels,  
                            kernel_size=1, stride=1, padding=0)
         )
+
+        self.layers1 = DepthwiseBlock(in_channels, in_channels*InvertedResidualBlock.expansion, stride=stride)
         self.act = nn.ReLU()
 
         self.use_residual = use_residual
 
     def forward(self, x):
+        x2 = self.layers1(x)
+        # print('x2.shape expansion : ',x.shape, x2.shape)
+        # print('expansion : ', InvertedResidualBlock.expansion)
         shortcut = self.layers(x)
 
         if self.use_residual:
@@ -110,6 +116,7 @@ class InvertedResidualBlock(nn.Module):
             Returs : your input inteager value
         '''
         cls.expansion = exp
+        print('cls.expansion : ', cls.expansion)
 
 
 class PFLDBackbone(nn.Module):
@@ -143,9 +150,6 @@ class PFLDBackbone(nn.Module):
 
         self.fcs = nn.Linear(176, 196) # landmark
 
-        
-
-
 
     def forward(self, x):
         x = self.conv1(x) # (-1, 64, 56, 56) 
@@ -170,14 +174,14 @@ class PFLDBackbone(nn.Module):
 
         return out1, landmark
 
-    @staticmethod
-    def _create_block(in_channels, expansion, out_channels, repeat, stride):
+    def _create_block(self, in_channels, expansion, out_channels, repeat, stride):
         layers = []
         use_residual = None
 
-        InvertedResidualBlock.change_exp = expansion
+        InvertedResidualBlock.change_exp(expansion)
 
         for idx, _ in enumerate(range(repeat)):
+            # print(f"Block {idx}, Expansion: {InvertedResidualBlock.expansion}")
             if idx == 0:
                 stride = stride
                 use_residual = False
@@ -205,6 +209,8 @@ class AuxiliaryBlock(nn.Module):
         self.conv2 = nn.Conv2d(128, 128, kernel_size=3, stride=1, padding=1)
         self.conv3 = nn.Conv2d(128, 32, kernel_size=3, stride=2, padding=1)
         self.conv4 = nn.Conv2d(32, 128, kernel_size=7, stride=1, padding=0)
+        
+        self.avgpool = nn.AvgPool2d(3)
 
         self.linear1 = nn.Linear(128, 32)
         self.linear2 = nn.Linear(32, 3)
@@ -227,9 +233,9 @@ class AuxiliaryBlock(nn.Module):
         return euler_angle
     
 
-# user_input = torch.randn(1, 3, 112, 112)
-# model = PFLDBackbone()
-# print(model(user_input)[0].shape, model(user_input)[1].shape)
+user_input = torch.randn(1, 3, 112, 112)
+model = PFLDBackbone()
+print(model(user_input)[0].shape, model(user_input)[1].shape)
 
 
 # user_input2 = torch.randn(1, 64, 28, 28)
@@ -238,10 +244,10 @@ class AuxiliaryBlock(nn.Module):
 
 from torchinfo import summary
 
-# model1 = PFLDBackbone()
-# print(summary(model1, (1, 3, 112, 112)))
+model1 = PFLDBackbone()
+print(summary(model1, (1, 3, 112, 112)))
 
 
 
-model2 = AuxiliaryBlock()
-print(summary(model2, (1, 64, 28, 28)))
+# model2 = AuxiliaryBlock()
+# print(summary(model2, (1, 64, 28, 28)))
