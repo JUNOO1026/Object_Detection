@@ -1,11 +1,26 @@
-yolov8_architecture : [
-  ['conv', 64],
-  ['conv', 128],
-  ['c2f', 128, 3],
-  ['conv', 256],
-  ['c2f', 256, 6],
-  ['conv', 512],
-  ['c2f', 512, 6],
-  ['conv', 512],
-  ['c2f', 512, 3]
+yolov8_backbone : [
+  ['conv', [64, 3, 2], 1, 'False'],
+  ['conv', [128, 3, 2], 1, 'False'],
+  ['c2f', [128, 3, 1], 3, 'True'],
+  ['conv', [256, 3, 2], 1, 'False'],
+  ['c2f', [256, 3, 1], 6, 'True'],
+  ['conv', [512, 3, 2], 1, 'False'],
+  ['c2f', [512, 3, 1], 6, 'True'],
+  ['conv', [512, 3, 2], 1, 'False'],
+  ['c2f', [512, 3, 1], 3, 'True']
+]
+
+yolov8_head : [
+  ['upsample'],
+  ['concat'],
+  ['c2f', [40, 3, 1], 3, 'False'],
+  ['upsmaple'],
+  ['concat']
+  ['c2f', [80, 3, 1], 3, 'False'],
+  ['conv', [40, 3, 2]],
+  ['concat']
+  ['c2f', [40, 3, 1], 3, 'False'],
+  ['conv', [20, 3, 2]],
+  ['concat']
+  ['c2f', [20, 3, 1], 3, 'False'],
 ]
